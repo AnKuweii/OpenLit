@@ -1,0 +1,10 @@
+# 后端
+backend/.env
+backend/data/
+
+# 前端
+frontend/
+
+# Python 缓存
+backend/**/__pycache__/
+backend/**/*.pyc
