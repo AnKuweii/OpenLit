@@ -2,18 +2,18 @@
 from __future__ import annotations
 
 import os
-
-from langchain.chat_models import init_chat_model
-from langchain_openai import OpenAIEmbeddings
-
+logger = logging.getLogger(__name__)
 from config import (
-    EMBED_DEFAULT_BASE_URL,
     EMBED_MODEL,
     GRADER_TEMPERATURE,
     MODEL_NAME,
     MODEL_PROVIDER,
     TEMPERATURE,
 )
+
+import torch.cuda as cuda
+from langchain.chat_models import init_chat_model
+from langchain_huggingface import HuggingFaceEmbeddings
 
 
 def get_llm():
@@ -24,10 +24,10 @@ def get_grader():
     return init_chat_model(model=MODEL_NAME, model_provider=MODEL_PROVIDER, temperature=GRADER_TEMPERATURE)
 
 
-def get_embeddings() -> OpenAIEmbeddings:
+def get_embeddings() -> HuggingFaceEmbeddings:
     """加载嵌入模型（Embedding）"""
-    return OpenAIEmbeddings(
-        api_key=os.getenv("OPENAI_API_KEY"),
-        base_url=os.getenv("OPENAI_BASE_URL") or os.getenv("OPENAI_EMBEDDING_BASE_URL") or EMBED_DEFAULT_BASE_URL,
-        model=EMBED_MODEL
+    return HuggingFaceEmbeddings(
+        model_name=EMBED_MODEL,
+        model_kwargs={"device": "cuda" if cuda.is_available() else "cpu"},
+        encode_kwargs={"normalize_embeddings": True}
     )

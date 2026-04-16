@@ -19,7 +19,8 @@ from config import (
     patch_paddleocr_langchain
 )
 patch_paddleocr_langchain() # 修补 paddle ocr 与 langchain 的兼容性问题
-
+import logging
+logger = logging.getLogger(__name__)
 # 存储结构：sessions[session_id] = [{"role":"user|assistant","content":"..."}...]
 _sessions: dict[str, list[dict]] = defaultdict(list)
 
@@ -66,6 +67,7 @@ async def retrieve(question: str, file_id: str) -> tuple[list[dict], str]:
         if len(snippet_short) > 500:
             snippet_short = snippet_short[:500] + "..."
         page = doc.metadata.get("page") or doc.metadata.get("page_number")
+        logger.error(f"metadata: {doc.metadata}")
         citations.append({
             "citation_id": f"{file_id}-c{i}",
             "fileId": file_id,
@@ -109,6 +111,7 @@ async def answer_stream(
     # 先把 citations 全部发给前端（便于角标立刻出现）
     if branch == "with_context" and citations:
         for c in citations:
+            logger.error(f"citation: rank={c.get('rank')} page = {c.get('page')}")
             yield {"type": "citation", "data": c}
 
     # 组装“历史 + 本轮提示”

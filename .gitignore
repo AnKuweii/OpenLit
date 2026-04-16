@@ -8,3 +8,6 @@ frontend/
 # Python 缓存
 backend/**/__pycache__/
 backend/**/*.pyc
+
+log/
+*.ps1

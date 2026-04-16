@@ -37,8 +37,11 @@ def workdir(file_id: str) -> Path:
 # ============================= 环境变量 =============================
 import os
 from dotenv import load_dotenv
-load_dotenv(override=True)
 
+load_dotenv(Path(__file__).resolve().parent / ".env", override=True)
+
+os.environ["HF_HOME"] = os.getenv("HF_HOME")
+os.environ["TRANSFORMERS_CACHE"] = os.getenv("TRANSFORMERS_CACHE")
 os.environ["OPENAI_BASE_URL"] = os.getenv("OPENAI_BASE_URL")
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
@@ -52,15 +55,14 @@ TEMPERATURE = os.getenv("TEMPERATURE")
 GRADER_TEMPERATURE = 0
 
 # 嵌入模型
-EMBED_MODEL = "text-embedding-3-large"
-EMBED_DEFAULT_BASE_URL = "https://ai.devtool.tech/proxy/v1"
+EMBED_MODEL = "BAAI/bge-m3"
 
 # ============================= 检索配置 =============================
 # 相似度检索数量
 K = 3
 # 相似度检索阈值 → FAISS L2：越小越相似；数值可以灵活调整（Top1 和 Mean3）
-SCORE_TAU_TOP1 = 0.45
-SCORE_TAU_MEAN3 = 0.60
+SCORE_TAU_TOP1 = 0.30
+SCORE_TAU_MEAN3 = 0.40
 
 # ============================= Prompt 提示词配置 =============================
 # 系统提示词配置

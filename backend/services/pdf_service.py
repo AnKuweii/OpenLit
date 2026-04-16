@@ -3,6 +3,10 @@ from __future__ import annotations
 import os, io, math, json
 from pathlib import Path
 from typing import Dict, Any, List
+
+from config import patch_paddleocr_langchain, workdir
+patch_paddleocr_langchain()  # 修补 paddle ocr 与 langchain 的兼容性问题
+
 import fitz
 from PIL import Image
 import matplotlib
@@ -13,11 +17,6 @@ import matplotlib.patches as patches
 from langchain_unstructured import UnstructuredLoader
 from unstructured.partition.pdf import partition_pdf
 from html2text import html2text
-
-import sys
-
-from config import patch_paddleocr_langchain, workdir
-patch_paddleocr_langchain() # 修补 paddle ocr 与 langchain 的兼容性问题
 
 
 def dir_original_pages(file_id: str) -> Path:
