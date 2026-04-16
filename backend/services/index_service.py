@@ -4,13 +4,14 @@ import re
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
+from config import patch_paddleocr_langchain, workdir
+patch_paddleocr_langchain() # 修补 paddle ocr 与 langchain 的兼容性问题
+
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 from langchain.docstore.document import Document
 from langchain_community.vectorstores import FAISS
 
 from model import get_embeddings
-from config import patch_paddleocr_langchain, workdir
-patch_paddleocr_langchain() # 修补 paddle ocr 与 langchain 的兼容性问题
 
 
 def markdown_path(file_id: str) -> Path:

@@ -1,20 +1,16 @@
 """RAG 服务：检索 + 判定 + 生成"""
 from __future__ import annotations
-import os, asyncio, textwrap
-from typing import List, Dict, Any, Tuple, AsyncGenerator
+import asyncio
+from typing import AsyncGenerator
 from typing_extensions import TypedDict
 
-from langchain_community.vectorstores import FAISS
 from collections import defaultdict
 
-from model import get_embeddings, get_grader, get_llm
+from model import get_llm
+from services.retrieve_service import retrieve
 from config import (
     ANSWER_NO_CONTEXT,
     ANSWER_WITH_CONTEXT,
-    GRADE_PROMPT,
-    K,
-    SCORE_TAU_MEAN3,
-    SCORE_TAU_TOP1,
     SYSTEM_INSTRUCTION,
     patch_paddleocr_langchain
 )
@@ -32,67 +28,6 @@ def append_history(session_id: str, role: str, content: str) -> None:
 
 def clear_history(session_id: str) -> None:
     _sessions.pop(session_id, None)
-
-def _vs_dir(file_id: str) -> str:
-    return os.path.join("data", file_id, "index_faiss")
-
-def _load_vs(file_id: str) -> FAISS:
-    vs_path = _vs_dir(file_id)
-    idx_file = os.path.join(vs_path, "index.faiss")
-    if not os.path.exists(idx_file):
-        raise FileNotFoundError(f"FAISS index not found at {vs_path}; build index first.")
-    return FAISS.load_local(vs_path, get_embeddings(), allow_dangerous_deserialization=True)
-
-def _score_ok(scores: List[float]) -> bool:
-    if not scores:
-        return False
-    top1 = scores[0]
-    mean3 = sum(scores[:3]) / min(3, len(scores))
-    return (top1 <= SCORE_TAU_TOP1) or (mean3 <= SCORE_TAU_MEAN3)
-
-# ---------------- 主流程：检索 + 判定 + 生成 ----------------
-async def retrieve(question: str, file_id: str) -> tuple[list[dict], str]:
-    """
-    返回 (citations, context_text)
-    citations: [{citation_id, fileId, rank, page, snippet, score, previewUrl}]
-    context_text: 供 LLM 使用的拼接上下文
-    """
-    vs = _load_vs(file_id)
-    hits = vs.similarity_search_with_score(question, k=K)
-    citations = []
-    ctx_snippets = []
-    scores = []
-    for i, (doc, score) in enumerate(hits, start=1):
-        snippet_short = (doc.page_content or "").strip()
-        if len(snippet_short) > 500:
-            snippet_short = snippet_short[:500] + "..."
-        page = doc.metadata.get("page") or doc.metadata.get("page_number")
-        logger.error(f"metadata: {doc.metadata}")
-        citations.append({
-            "citation_id": f"{file_id}-c{i}",
-            "fileId": file_id,
-            "rank": i,
-            "page": page,
-            "snippet": (doc.page_content or "")[:4000],
-            "score": float(score),
-            "previewUrl": f"/api/v1/pdf/page?fileId={file_id}&page={(page or 1)}&type=original",
-        })
-        ctx_snippets.append(f"[{i}] {snippet_short}")
-        scores.append(float(score))
-    context_text = "\n\n".join(ctx_snippets) if ctx_snippets else "(no hits)"
-
-    # 规则 + LLM 复核
-    ok_by_score = _score_ok(scores)
-    if not ok_by_score:
-        grader = get_grader()
-        grade_prompt = GRADE_PROMPT.format(context=context_text, question=question)
-        decision = await grader.ainvoke([{"role": "user", "content": grade_prompt}])
-        ok_by_llm = "yes" in (decision.content or "").lower()
-    else:
-        ok_by_llm = True
-
-    branch = "with_context" if ok_by_llm else "no_context"
-    return citations, context_text if branch == "with_context" else ""
 
 async def answer_stream(
     question: str,
