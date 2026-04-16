@@ -1,5 +1,6 @@
 """索引服务：将 Markdown 文本转换为 FAISS 索引"""
 from __future__ import annotations
+import re
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
@@ -21,14 +22,32 @@ def index_dir(file_id: str) -> Path:
     return p
 
 def split_markdown(md_text: str) -> List[Document]:
-    """索引前的拆分处理（Chunking） 按语义拆分将每个标题层级都是一个独立的Chunk"""
+    """索引前的拆分处理（Chunking） 按语义拆分将每个标题层级都是一个独立的Chunk，并注入页码metadata"""
+    # 先移除注释标记，记录页码映射
+    page_markers = re.findall(r'<!-- PAGE (\d+) -->', md_text)
+    md_text_clean = re.sub(r'<!-- PAGE \d+ -->', '', md_text)
+    
     headers_to_split_on = [
         ("#", "Header 1"),
         ("##", "Header 2"),
         ("###", "Header 3")
     ]
     splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split_on)
-    docs = splitter.split_text(md_text)
+    docs = splitter.split_text(md_text_clean)
+    
+    # 为每个 chunk 添加页码：通过在原始文本中查找该内容的位置
+    for doc in docs:
+        chunk_text = doc.page_content[:100]  # 用前100字符查找
+        # 在原始文本中找这个 chunk 的位置
+        pos = md_text.find(chunk_text)
+        if pos >= 0:
+            # 找这个位置之前最后一个 PAGE 标记
+            before_text = md_text[:pos]
+            matches = list(re.finditer(r'<!-- PAGE (\d+) -->', before_text))
+            if matches:
+                page_num = int(matches[-1].group(1))
+                doc.metadata["page_number"] = page_num
+    
     return clean_chunks(docs)
 
 def clean_chunks(docs: List[Document]) -> List[Document]:

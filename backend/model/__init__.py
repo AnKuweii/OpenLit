@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import os
-logger = logging.getLogger(__name__)
 from config import (
     EMBED_MODEL,
     GRADER_TEMPERATURE,

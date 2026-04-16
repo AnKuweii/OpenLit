@@ -154,11 +154,17 @@ def pdf_to_markdown(file_id: str):
 
     md_lines: List[str] = []
     inserted_images = set()
+    current_page = None
     for el in elements:
         cat = getattr(el, "category", None)
         text = (getattr(el, "text", "") or "").strip()
         meta = getattr(el, "metadata", None)
         page_num = getattr(meta, "page_number", None) if meta else None
+
+        # 页码变化时插入标记
+        if page_num and page_num != current_page:
+            md_lines.append(f"<!-- PAGE {page_num} -->")
+            current_page = page_num
 
         if not text and cat != "Image":
             continue
