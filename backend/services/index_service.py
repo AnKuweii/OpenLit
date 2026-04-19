@@ -8,7 +8,8 @@ from config import patch_paddleocr_langchain, workdir
 patch_paddleocr_langchain() # 修补 paddle ocr 与 langchain 的兼容性问题
 
 from langchain_text_splitters import MarkdownHeaderTextSplitter
-from langchain.docstore.document import Document
+# from langchain.docstore.document import Document
+from langchain_classic.schema import Document
 from langchain_community.vectorstores import FAISS
 
 from model import get_embeddings
@@ -52,13 +53,40 @@ def split_markdown(md_text: str) -> List[Document]:
     return clean_chunks(docs)
 
 def clean_chunks(docs: List[Document]) -> List[Document]:
-    """清洗拆分后的Chunk"""
+    """
+    清洗 OCR 拆分后的 Markdown chunk：
+    - 去除首尾空白
+    - 过滤过短、无连续单词、由单字符空格分隔的脏数据
+    """
     cleaned = []
-    for d in docs:
-        txt = (d.page_content or "").strip()
-        if not txt:
+    
+    for doc in docs:
+        text = (doc.page_content or "").strip()
+        if not text:
             continue
-        cleaned.append(Document(page_content=txt, metadata=d.metadata))
+        
+        # 1. 长度过短（且不含有效连续字符）-> 丢弃
+        if len(text) < 3:
+            continue
+        
+        # 2. 检测是否包含连续字母/数字（至少 3 个字符）
+        has_word = bool(re.search(r'[A-Za-z0-9]{3,}', text))
+        if not has_word:
+            # 如果没有连续字符，例如纯符号 "## @$%"，丢弃
+            continue
+        
+        # 3. 检测“空格分隔的单字符”模式
+        #    特征：去除空格后长度 > 10，但按空格切分后大部分 token 长度为 1
+        tokens = text.split()
+        if len(tokens) >= 5:
+            single_char_tokens = sum(1 for t in tokens if len(t) == 1)
+            # 如果超过 70% 的 token 都是单字符，认为是 OCR 碎片
+            if single_char_tokens / len(tokens) > 0.7:
+                continue
+        
+        # 通过所有检查，保留
+        cleaned.append(Document(page_content=text, metadata=doc.metadata))
+    
     return cleaned
 
 def build_faiss_index(file_id: str) -> Dict[str, Any]:
