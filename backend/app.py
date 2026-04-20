@@ -1,7 +1,10 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from model import ModelFactory
 from router.chat import router as chat_router
 from router.pdf import router as pdf_router
 from schema import BuildIndexRequest, SearchRequest
@@ -9,10 +12,18 @@ from services.index_service import build_faiss_index, search_faiss
 from state import current_pdf
 from utils import err
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    ModelFactory.init()
+    yield
+
+
 app = FastAPI(
     title="OpenLit",
     version="1.0.0",
     description="OpenLit is a multi-modal Advanced RAG System.",
+    lifespan=lifespan,
 )
 
 app.add_middleware(

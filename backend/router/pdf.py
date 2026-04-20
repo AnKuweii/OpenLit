@@ -37,6 +37,15 @@ async def pdf_parse(payload: PdfParseRequest, bg: BackgroundTasks):
     if not current_pdf["fileId"] or current_pdf["fileId"] != file_id:
         return JSONResponse(err("FILE_NOT_FOUND", "未找到该文件"), status_code=400)
 
+    if current_pdf["status"] == "parsing":
+        return JSONResponse(
+            err("ALREADY_PARSING", "该文件正在解析中，请勿重复提交"),
+            status_code=409,
+        )
+
+    if current_pdf["status"] == "ready":
+        return {"ok": True, "message": "ALREADY_PARSED", "progress": 100}
+
     current_pdf["status"] = "parsing"
     current_pdf["progress"] = 5
 
