@@ -13,6 +13,8 @@ dotenv
 faiss-cpu
 langgraph
 langchain
+langchain-core
 langchain-openai
 langchain-community
+langchain-huggingface
 langchain-text-splitters
