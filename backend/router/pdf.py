@@ -1,8 +1,10 @@
 """PDF 上传、解析与资源访问的路由。"""
+import asyncio
+import json
 from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, File, Query, UploadFile
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 
 from schema import PdfParseRequest
 from services.pdf_service import (
@@ -75,11 +77,52 @@ async def pdf_status(fileId: str = Query(...)):
     return resp
 
 
+@router.get("/status/stream")
+async def pdf_status_stream(fileId: str = Query(...)):
+    """SSE push stream — replaces aggressive polling of /status.
+
+    Emits a JSON event whenever status/progress changes, then auto-closes
+    when a terminal state ("ready" / "error") is reached.
+
+    Frontend usage:
+        const src = new EventSource("/api/v1/pdf/status/stream?fileId=xxx");
+        src.onmessage = (e) => updateUI(JSON.parse(e.data));
+    """
+
+    async def event_generator():
+        prev = None
+        while True:
+            if not current_pdf["fileId"] or current_pdf["fileId"] != fileId:
+                snapshot = {"status": "idle", "progress": 0}
+            else:
+                snapshot = {
+                    "status": current_pdf["status"],
+                    "progress": current_pdf["progress"],
+                }
+                if current_pdf["status"] == "error":
+                    snapshot["errorMsg"] = "解析失败"
+
+            if snapshot != prev:
+                yield f"data: {json.dumps(snapshot, ensure_ascii=False)}\n\n"
+                prev = snapshot
+
+            if snapshot["status"] in ("ready", "error", "idle"):
+                break
+
+            await asyncio.sleep(1)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache, no-transform", "Connection": "keep-alive"},
+    )
+
+
 @router.get("/page")
 async def pdf_page(
     fileId: str = Query(...),
     page: int = Query(..., ge=1),
-    type: str = Query(..., regex="^(original|parsed)$"),
+    type: str = Query(..., pattern="^(original|parsed)$"),
 ):
     """获取 PDF 页面的图片，供前端展示"""
     if not current_pdf["fileId"] or current_pdf["fileId"] != fileId:
