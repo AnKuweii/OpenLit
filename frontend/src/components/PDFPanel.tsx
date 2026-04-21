@@ -361,13 +361,22 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
                     Summary
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent
+                  className="sm:max-w-lg"
+                  style={{
+                    background: 'rgba(20, 10, 40, 0.95)',
+                    borderColor: 'rgba(0, 240, 255, 0.2)',
+                    boxShadow: '0 25px 60px rgba(0,0,0,0.5), 0 0 30px rgba(0,240,255,0.1)',
+                    backdropFilter: 'blur(16px)',
+                    color: '#c0c0d0',
+                  }}
+                >
                   <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
+                    <DialogTitle className="flex items-center gap-2" style={{ color: '#00f0ff' }}>
                       <Sparkles className="w-4 h-4" style={{ color: '#bf00ff' }} />
                       Document Summary
                     </DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription style={{ color: '#6b6b8a' }}>
                       AI-generated summary of the uploaded document
                     </DialogDescription>
                   </DialogHeader>
@@ -375,10 +384,10 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
                     {summaryLoading ? (
                       <div className="flex items-center justify-center py-12">
                         <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#bf00ff' }} />
-                        <span className="ml-3 text-sm text-muted-foreground">Generating summary...</span>
+                        <span className="ml-3 text-sm" style={{ color: '#6b6b8a' }}>Generating summary...</span>
                       </div>
                     ) : (
-                      <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap pr-4">
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap pr-4" style={{ color: '#c0c0d0' }}>
                         {summaryText}
                       </p>
                     )}

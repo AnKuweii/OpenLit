@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import logging
 import re
 
@@ -16,6 +17,19 @@ logger = logging.getLogger(__name__)
 
 # BART 编码器最大接受 1024 tokens
 _MAX_INPUT_TOKENS = 1024
+
+# 摘要缓存：(text_hash, max_length, min_length) → summary
+_cache: dict[tuple[str, int, int], str] = {}
+
+
+def _cache_key(text: str, max_length: int, min_length: int) -> tuple[str, int, int]:
+    h = hashlib.sha256(text.encode()).hexdigest()[:16]
+    return (h, max_length, min_length)
+
+
+def clear_summary_cache() -> None:
+    """清空摘要缓存（新文件上传时调用）。"""
+    _cache.clear()
 
 
 def _clean_markdown(text: str) -> str:
@@ -95,7 +109,13 @@ async def generate_summary(
     if not cleaned:
         raise ValueError("清洗后文本为空，无法生成摘要")
 
+    key = _cache_key(cleaned, max_length, min_length)
+    if key in _cache:
+        logger.info("[Summary] cache hit")
+        return _cache[key]
+
     logger.info("[Summary] generating summary for %d chars …", len(cleaned))
     summary = await asyncio.to_thread(_generate_sync, cleaned, max_length, min_length)
+    _cache[key] = summary
     logger.info("[Summary] done, summary length = %d chars", len(summary))
     return summary

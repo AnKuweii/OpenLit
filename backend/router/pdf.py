@@ -15,7 +15,7 @@ from services.pdf_service import (
     run_full_parse_pipeline,
     save_upload,
 )
-from services.summary_service import generate_summary
+from services.summary_service import clear_summary_cache, generate_summary
 from state import citations, current_pdf
 from utils import err, rid
 
@@ -31,6 +31,7 @@ async def pdf_upload(file: UploadFile = File(...), replace: Optional[bool] = Tru
     saved = save_upload(fid, await file.read(), file.filename)
     current_pdf.update({**saved, "status": "idle", "progress": 0})
     citations.clear()
+    clear_summary_cache()
     return saved
 
 

@@ -269,9 +269,9 @@ export function ChatInterface({
           <div className="p-5">
             <div className="space-y-3">
               {messages.map((m) => (
-                <div key={m.id} className={`flex gap-3 items-center ${m.type === "user" ? "justify-end" : "justify-start"}`}>
+                <div key={m.id} className={`flex gap-3 items-start ${m.type === "user" ? "justify-end" : "justify-start"}`}>
                   {m.type === "assistant" && (
-                    <Avatar className="w-8 h-8 flex-shrink-0" style={{ border: '1px solid rgba(0,240,255,0.3)' }}>
+                    <Avatar className="w-8 h-8 flex-shrink-0 mt-1" style={{ border: '1px solid rgba(0,240,255,0.3)' }}>
                       <AvatarFallback style={{ background: 'linear-gradient(135deg, rgba(0,240,255,0.1), rgba(191,0,255,0.1))' }}>
                         <Bot className="w-4 h-4" style={{ color: '#00f0ff' }} />
                       </AvatarFallback>
@@ -298,7 +298,7 @@ export function ChatInterface({
                   </div>
 
                   {m.type === "user" && (
-                    <Avatar className="w-8 h-8 flex-shrink-0" style={{ border: '1px solid rgba(191,0,255,0.3)' }}>
+                    <Avatar className="w-8 h-8 flex-shrink-0 mt-1" style={{ border: '1px solid rgba(191,0,255,0.3)' }}>
                       <AvatarFallback style={{ background: 'linear-gradient(135deg, rgba(191,0,255,0.15), rgba(74,25,44,0.3))' }}>
                         <User className="w-4 h-4" style={{ color: '#bf00ff' }} />
                       </AvatarFallback>
@@ -308,8 +308,8 @@ export function ChatInterface({
               ))}
 
               {isTyping && (
-                <div className="flex gap-3 items-center">
-                  <Avatar className="w-8 h-8 flex-shrink-0" style={{ border: '1px solid rgba(0,240,255,0.3)' }}>
+                <div className="flex gap-3 items-start">
+                  <Avatar className="w-8 h-8 flex-shrink-0 mt-1" style={{ border: '1px solid rgba(0,240,255,0.3)' }}>
                     <AvatarFallback style={{ background: 'linear-gradient(135deg, rgba(0,240,255,0.1), rgba(191,0,255,0.1))' }}>
                       <Bot className="w-4 h-4" style={{ color: '#00f0ff' }} />
                     </AvatarFallback>
