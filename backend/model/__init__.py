@@ -3,19 +3,24 @@ from __future__ import annotations
 
 import os
 from config import (
+    DEVICE,
     EMBED_MODEL,
     GRADER_TEMPERATURE,
     MODEL_NAME,
     MODEL_PROVIDER,
     RERANKER_MODEL,
+    SUMMARY_MODEL,
     TEMPERATURE,
 )
 
 import logging
-import torch.cuda as cuda
+
+import torch
 from langchain.chat_models import init_chat_model
 from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 from langchain_huggingface import HuggingFaceEmbeddings
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,6 +29,8 @@ class ModelFactory:
 
     _embeddings: HuggingFaceEmbeddings | None = None
     _reranker: HuggingFaceCrossEncoder | None = None
+    _summarizer_tokenizer: AutoTokenizer | None = None
+    _summarizer_model: AutoModelForSeq2SeqLM | None = None
     _llm = None
     _grader = None
     _router = None
@@ -31,18 +38,39 @@ class ModelFactory:
     @classmethod
     def init(cls) -> None:
         """提前加载所有模型。必须在第一次请求之前调用。"""
-        device = "cuda" if cuda.is_available() else "cpu"
-        logger.info("[ModelFactory] loading embedding model %s on %s …", EMBED_MODEL, device)
+        logger.info("[ModelFactory] loading embedding model %s on %s …", EMBED_MODEL, DEVICE)
         cls._embeddings = HuggingFaceEmbeddings(
             model_name=EMBED_MODEL,
-            model_kwargs={"device": device},
+            model_kwargs={"device": DEVICE},
             encode_kwargs={"normalize_embeddings": True},
         )
         logger.info("[ModelFactory] embedding model ready.")
 
-        logger.info("[ModelFactory] loading reranker model %s on %s …", RERANKER_MODEL, device)
+        logger.info("[ModelFactory] loading reranker model %s on %s …", RERANKER_MODEL, DEVICE)
         cls._reranker = HuggingFaceCrossEncoder(model_name=RERANKER_MODEL)
         logger.info("[ModelFactory] reranker model ready.")
+
+        logger.info("[ModelFactory] loading summarizer model %s …", SUMMARY_MODEL)
+        try:
+            cls._summarizer_tokenizer = AutoTokenizer.from_pretrained(SUMMARY_MODEL)
+            cls._summarizer_model = AutoModelForSeq2SeqLM.from_pretrained(SUMMARY_MODEL)
+            if DEVICE == "cuda":
+                try:
+                    cls._summarizer_model = cls._summarizer_model.to("cuda")
+                except torch.cuda.OutOfMemoryError:
+                    logger.warning(
+                        "[ModelFactory] GPU OOM for summarizer, falling back to CPU"
+                    )
+                    cls._summarizer_model = cls._summarizer_model.to("cpu")
+            cls._summarizer_model.eval()
+            logger.info(
+                "[ModelFactory] summarizer model ready on %s.",
+                next(cls._summarizer_model.parameters()).device,
+            )
+        except Exception as e:
+            logger.error("[ModelFactory] failed to load summarizer: %s", e)
+            cls._summarizer_tokenizer = None
+            cls._summarizer_model = None
 
         logger.info("[ModelFactory] initializing LLM (%s / %s) …", MODEL_PROVIDER, MODEL_NAME)
         cls._llm = init_chat_model(
@@ -89,6 +117,15 @@ class ModelFactory:
         return cls._reranker
 
     @classmethod
+    def summarizer(cls) -> tuple[AutoTokenizer, AutoModelForSeq2SeqLM]:
+        """返回 (tokenizer, model) 二元组。"""
+        if cls._summarizer_tokenizer is None or cls._summarizer_model is None:
+            raise RuntimeError(
+                "Summarizer model not available – check startup logs for loading errors"
+            )
+        return cls._summarizer_tokenizer, cls._summarizer_model
+
+    @classmethod
     def router(cls):
         if cls._router is None:
             raise RuntimeError("ModelFactory not initialized – call ModelFactory.init() first")
@@ -114,6 +151,11 @@ def get_grader():
 def get_reranker() -> HuggingFaceCrossEncoder:
     """获取重排序 cross-encoder 实例。"""
     return ModelFactory.reranker()
+
+
+def get_summarizer() -> tuple[AutoTokenizer, AutoModelForSeq2SeqLM]:
+    """获取摘要模型 (tokenizer, model) 二元组。"""
+    return ModelFactory.summarizer()
 
 
 def get_router():

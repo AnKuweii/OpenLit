@@ -3,6 +3,15 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Progress } from "./ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { ScrollArea } from "./ui/scroll-area";
 import { 
   Upload, 
   FileText, 
@@ -12,9 +21,10 @@ import {
   CheckCircle2,
   Loader2,
   RefreshCw,
-  File
+  File,
+  Sparkles,
 } from "lucide-react";
-import { uploadPdf, startParse, subscribePdfStatus, buildIndex, getPdfPageUrl } from "../services/api";
+import { uploadPdf, startParse, subscribePdfStatus, buildIndex, getPdfPageUrl, getSummary } from "../services/api";
 import { toast } from "sonner";
 
 type UploadStatus = 'idle' | 'uploading' | 'parsing' | 'ready' | 'error';
@@ -32,6 +42,9 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [fileId, setFileId] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const [summaryText, setSummaryText] = useState<string>('');
+  const [summaryLoading, setSummaryLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const statusSource = useRef<EventSource | null>(null);
 
@@ -168,6 +181,23 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
     }
   };
 
+  const handleSummary = async () => {
+    if (!fileId) return;
+    setSummaryLoading(true);
+    setSummaryText('');
+    setSummaryOpen(true);
+    try {
+      const res = await getSummary(fileId);
+      setSummaryText(res.summary);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Failed to generate summary';
+      toast.error(msg);
+      setSummaryText(`Error: ${msg}`);
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
   const nextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(prev => prev + 1);
@@ -299,8 +329,8 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
       {uploadStatus === 'ready' ? (
         <div className="flex-1 flex flex-col relative min-h-0">
           <Tabs defaultValue="original" className="flex-1 flex flex-col min-h-0">
-            <div className="px-5 pt-3">
-              <TabsList className="grid w-full grid-cols-2 h-9 bg-secondary/30 border border-border/30 rounded-xl">
+            <div className="px-5 pt-3 flex items-center gap-2">
+              <TabsList className="grid flex-1 grid-cols-2 h-9 bg-secondary/30 border border-border/30 rounded-xl">
                 <TabsTrigger value="original" className="text-xs px-2 py-1.5 rounded-lg data-[state=active]:bg-amber-500/12 data-[state=active]:text-amber-400 transition-all">
                   Original
                 </TabsTrigger>
@@ -308,6 +338,48 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
                   Parsed
                 </TabsTrigger>
               </TabsList>
+
+              <Dialog open={summaryOpen} onOpenChange={setSummaryOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSummary}
+                    disabled={summaryLoading}
+                    className="h-9 px-3 shrink-0 border-border/30 hover:bg-violet-500/10 hover:text-violet-400 transition-all rounded-xl text-xs gap-1.5"
+                  >
+                    {summaryLoading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3.5 h-3.5" />
+                    )}
+                    Summary
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-violet-400" />
+                      Document Summary
+                    </DialogTitle>
+                    <DialogDescription>
+                      AI-generated summary of the uploaded document
+                    </DialogDescription>
+                  </DialogHeader>
+                  <ScrollArea className="max-h-[60vh]">
+                    {summaryLoading ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="w-6 h-6 animate-spin text-violet-400" />
+                        <span className="ml-3 text-sm text-muted-foreground">Generating summary...</span>
+                      </div>
+                    ) : (
+                      <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap pr-4">
+                        {summaryText}
+                      </p>
+                    )}
+                  </ScrollArea>
+                </DialogContent>
+              </Dialog>
             </div>
             
             <TabsContent value="original" className="flex-1 flex flex-col mt-3 mx-5 mb-4 min-h-0">

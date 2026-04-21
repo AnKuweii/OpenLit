@@ -31,3 +31,10 @@ class SearchRequest(BaseModel):
     fileId: str
     query: str
     k: Optional[int] = 5
+
+
+class SummaryRequest(BaseModel):
+    """pdf路由中的摘要请求体"""
+    fileId: str
+    maxLength: Optional[int] = 150
+    minLength: Optional[int] = 40

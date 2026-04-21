@@ -45,6 +45,10 @@ os.environ["TRANSFORMERS_CACHE"] = os.getenv("TRANSFORMERS_CACHE")
 os.environ["OPENAI_BASE_URL"] = os.getenv("OPENAI_BASE_URL")
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
+# ============================= 设备配置 =============================
+import torch.cuda as cuda
+DEVICE = "cuda" if cuda.is_available() else "cpu"
+
 # ============================= 模型配置 =============================
 # 问答模型
 MODEL_NAME = os.getenv("MODEL_NAME")
@@ -60,6 +64,9 @@ EMBED_MODEL = "BAAI/bge-m3"
 # 重排序模型（本地 HuggingFaceCrossEncoder）
 RERANKER_MODEL = os.getenv("RERANKER_MODEL", "BAAI/bge-reranker-v2-m3")
 RERANKER_TOP_N = 3
+
+# 摘要模型（本地 BART seq2seq）
+SUMMARY_MODEL = os.getenv("SUMMARY_MODEL", "facebook/bart-large-cnn")
 
 # ============================= 检索配置 =============================
 # 初步召回数量（rerank 前），应大于最终需要的 K 以给重排序留出筛选空间

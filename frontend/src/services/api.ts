@@ -337,6 +337,27 @@ To see the full functionality, please start the backend server at \`localhost:80
   }
 }
 
+// 生成文档摘要
+export async function getSummary(
+  fileId: string,
+  maxLength = 150,
+  minLength = 40,
+): Promise<{ ok: boolean; summary: string }> {
+  const response = await fetch(`${API_BASE_URL}/pdf/summary`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fileId, maxLength, minLength }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => null);
+    const msg = err?.error?.message || `Summary failed: ${response.statusText}`;
+    throw new Error(msg);
+  }
+
+  return response.json();
+}
+
 // 清空聊天会话
 export async function clearSession(sessionId = 'default'): Promise<{
   ok: boolean;

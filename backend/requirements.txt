@@ -18,3 +18,5 @@ langchain-openai
 langchain-community
 langchain-huggingface
 langchain-text-splitters
+transformers
+accelerate

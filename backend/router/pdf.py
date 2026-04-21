@@ -6,14 +6,16 @@ from typing import Optional
 from fastapi import APIRouter, BackgroundTasks, File, Query, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 
-from schema import PdfParseRequest
+from schema import PdfParseRequest, SummaryRequest
 from services.pdf_service import (
     dir_original_pages,
     dir_parsed_pages,
     images_dir,
+    markdown_output,
     run_full_parse_pipeline,
     save_upload,
 )
+from services.summary_service import generate_summary
 from state import citations, current_pdf
 from utils import err, rid
 
@@ -167,3 +169,45 @@ async def pdf_chunk(citationId: str = Query(...)):
     if not ref:
         return JSONResponse(err("NOT_FOUND", "无该引用"), status_code=404)
     return ref
+
+
+@router.post("/summary")
+async def pdf_summary(payload: SummaryRequest):
+    """对已解析的 PDF Markdown 文本生成摘要。
+
+    集成流程：用户上传 PDF → 解析生成 output.md → 调用本端点 → 返回 BART 摘要。
+    """
+    file_id = payload.fileId
+    if not current_pdf["fileId"] or current_pdf["fileId"] != file_id:
+        return JSONResponse(err("FILE_NOT_FOUND", "未找到该文件"), status_code=404)
+
+    if current_pdf["status"] != "ready":
+        return JSONResponse(
+            err("NOT_READY", "文档尚未解析完成，请先完成解析"),
+            status_code=409,
+        )
+
+    md_path = markdown_output(file_id)
+    if not md_path.exists():
+        return JSONResponse(
+            err("MARKDOWN_NOT_FOUND", "未找到解析后的 Markdown 文件"),
+            status_code=404,
+        )
+
+    md_text = md_path.read_text(encoding="utf-8")
+    if not md_text.strip():
+        return JSONResponse(err("EMPTY_CONTENT", "文档内容为空"), status_code=400)
+
+    try:
+        summary = await generate_summary(
+            md_text,
+            max_length=payload.maxLength,
+            min_length=payload.minLength,
+        )
+        return {"ok": True, "summary": summary}
+    except ValueError as e:
+        return JSONResponse(err("INVALID_INPUT", str(e)), status_code=400)
+    except RuntimeError as e:
+        return JSONResponse(err("MODEL_ERROR", str(e)), status_code=500)
+    except Exception as e:
+        return JSONResponse(err("SUMMARY_FAILED", f"摘要生成失败: {e}"), status_code=500)
