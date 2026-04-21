@@ -216,9 +216,9 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
       case 'parsing':
         return <Loader2 className="w-3.5 h-3.5 animate-spin" />;
       case 'ready':
-        return <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />;
+        return <CheckCircle2 className="w-3.5 h-3.5" style={{ color: '#39ff14' }} />;
       case 'error':
-        return <AlertCircle className="w-3.5 h-3.5 text-rose-400" />;
+        return <AlertCircle className="w-3.5 h-3.5" style={{ color: '#ff1493' }} />;
       default:
         return <FileText className="w-3.5 h-3.5" />;
     }
@@ -255,15 +255,15 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
 
   return (
     <div className={`glass-panel-bright h-full flex flex-col relative overflow-hidden ${className}`}>
-      <div className="absolute inset-0 opacity-[0.03]">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-transparent to-amber-500/15"></div>
+      <div className="absolute inset-0 opacity-[0.04]">
+        <div className="absolute inset-0 bg-gradient-to-br from-green-500/15 via-transparent to-cyan-500/10"></div>
       </div>
 
       <div className="relative px-5 py-4 border-b border-border/50">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25">
-              <File className="w-4 h-4 text-emerald-400" />
+            <div className="p-2.5 rounded-xl border" style={{ background: 'rgba(57,255,20,0.08)', borderColor: 'rgba(57,255,20,0.25)' }}>
+              <File className="w-4 h-4" style={{ color: '#39ff14' }} />
             </div>
             <div>
               <h2 className="elegant-title text-base">Document</h2>
@@ -278,8 +278,8 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
         {uploadStatus === 'idle' ? (
           <Button 
             onClick={handleUploadClick} 
-            className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border border-emerald-500/30 rounded-xl transition-all duration-200 min-h-[44px] h-[44px] text-sm font-semibold cursor-pointer"
-            style={{ boxShadow: '0 4px 16px rgba(16, 185, 129, 0.2)' }}
+            className="w-full text-white rounded-xl transition-all duration-200 min-h-[44px] h-[44px] text-sm font-semibold cursor-pointer"
+            style={{ background: 'linear-gradient(135deg, #39ff14, #00cc44)', border: '1px solid rgba(57,255,20,0.4)', boxShadow: '0 4px 20px rgba(57,255,20,0.2)', color: '#0a0618' }}
           >
             <Upload className="w-4 h-4 mr-2 flex-shrink-0" />
             <span className="flex-shrink-0">Upload PDF</span>
@@ -331,10 +331,10 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
           <Tabs defaultValue="original" className="flex-1 flex flex-col min-h-0">
             <div className="px-5 pt-3 flex items-center gap-2">
               <TabsList className="grid flex-1 grid-cols-2 h-9 bg-secondary/30 border border-border/30 rounded-xl">
-                <TabsTrigger value="original" className="text-xs px-2 py-1.5 rounded-lg data-[state=active]:bg-amber-500/12 data-[state=active]:text-amber-400 transition-all">
+                <TabsTrigger value="original" className="text-xs px-2 py-1.5 rounded-lg transition-all data-[state=active]:text-[#00f0ff]" style={{ ['--active-bg' as string]: 'rgba(0,240,255,0.1)' }}>
                   Original
                 </TabsTrigger>
-                <TabsTrigger value="parsed" className="text-xs px-2 py-1.5 rounded-lg data-[state=active]:bg-amber-500/12 data-[state=active]:text-amber-400 transition-all">
+                <TabsTrigger value="parsed" className="text-xs px-2 py-1.5 rounded-lg transition-all data-[state=active]:text-[#00f0ff]" style={{ ['--active-bg' as string]: 'rgba(0,240,255,0.1)' }}>
                   Parsed
                 </TabsTrigger>
               </TabsList>
@@ -346,12 +346,13 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
                     size="sm"
                     onClick={handleSummary}
                     disabled={summaryLoading}
-                    className="h-9 px-3 shrink-0 border-border/30 hover:bg-violet-500/10 hover:text-violet-400 transition-all rounded-xl text-xs gap-1.5"
+                    className="h-9 px-3 shrink-0 border-border/30 transition-all rounded-xl text-xs gap-1.5"
+                    style={{ ['--hover-color' as string]: '#bf00ff' }}
                   >
                     {summaryLoading ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     ) : (
-                      <Sparkles className="w-3.5 h-3.5" />
+                      <Sparkles className="w-3.5 h-3.5" style={{ color: '#bf00ff' }} />
                     )}
                     Summary
                   </Button>
@@ -359,7 +360,7 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
                 <DialogContent className="sm:max-w-lg">
                   <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-violet-400" />
+                      <Sparkles className="w-4 h-4" style={{ color: '#bf00ff' }} />
                       Document Summary
                     </DialogTitle>
                     <DialogDescription>
@@ -369,7 +370,7 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
                   <ScrollArea className="max-h-[60vh]">
                     {summaryLoading ? (
                       <div className="flex items-center justify-center py-12">
-                        <Loader2 className="w-6 h-6 animate-spin text-violet-400" />
+                        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#bf00ff' }} />
                         <span className="ml-3 text-sm text-muted-foreground">Generating summary...</span>
                       </div>
                     ) : (
@@ -383,7 +384,7 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
             </div>
             
             <TabsContent value="original" className="flex-1 flex flex-col mt-3 mx-5 mb-4 min-h-0">
-              <div className="flex-1 bg-stone-900/30 border border-border/40 rounded-xl flex items-center justify-center overflow-hidden">
+              <div className="flex-1 border border-border/40 rounded-xl flex items-center justify-center overflow-hidden" style={{ background: 'rgba(10,5,20,0.4)' }}>
                 {fileId ? (
                   <img
                     src={getPdfPageUrl(fileId, currentPage, 'original')}
@@ -400,7 +401,7 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
             </TabsContent>
             
             <TabsContent value="parsed" className="flex-1 flex flex-col mt-3 mx-5 mb-4 min-h-0">
-              <div className="flex-1 bg-stone-900/30 border border-border/40 rounded-xl flex items-center justify-center overflow-hidden">
+              <div className="flex-1 border border-border/40 rounded-xl flex items-center justify-center overflow-hidden" style={{ background: 'rgba(10,5,20,0.4)' }}>
                 {fileId ? (
                   <img
                     src={getPdfPageUrl(fileId, currentPage, 'parsed')}
@@ -424,7 +425,7 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
                 size="sm"
                 onClick={prevPage}
                 disabled={currentPage <= 1}
-                className="h-9 px-3 border-border/30 hover:bg-amber-500/8 transition-all rounded-xl"
+                className="h-9 px-3 border-border/30 transition-all rounded-xl hover:text-[#00f0ff]"
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
@@ -438,7 +439,7 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
                 size="sm"
                 onClick={nextPage}
                 disabled={currentPage >= totalPages}
-                className="h-9 px-3 border-border/30 hover:bg-amber-500/8 transition-all rounded-xl"
+                className="h-9 px-3 border-border/30 transition-all rounded-xl hover:text-[#00f0ff]"
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -450,8 +451,8 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
           <div className="text-center space-y-5 max-w-sm">
             {uploadStatus === 'idle' ? (
               <>
-                <div className="w-18 h-18 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-2xl flex items-center justify-center mx-auto border border-emerald-500/20" style={{ width: '72px', height: '72px' }}>
-                  <Upload className="w-8 h-8 text-emerald-400/70" />
+                <div className="w-18 h-18 rounded-2xl flex items-center justify-center mx-auto" style={{ width: '72px', height: '72px', background: 'linear-gradient(135deg, rgba(57,255,20,0.08), rgba(0,240,255,0.08))', border: '1px solid rgba(57,255,20,0.2)' }}>
+                  <Upload className="w-8 h-8" style={{ color: 'rgba(57,255,20,0.6)' }} />
                 </div>
                 <div className="space-y-1.5">
                   <h3 className="font-semibold text-foreground text-sm">No document uploaded</h3>
@@ -462,8 +463,8 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
               </>
             ) : uploadStatus === 'error' ? (
               <>
-                <div className="w-18 h-18 bg-rose-500/10 rounded-2xl flex items-center justify-center mx-auto border border-rose-500/20" style={{ width: '72px', height: '72px' }}>
-                  <AlertCircle className="w-8 h-8 text-rose-400" />
+                <div className="w-18 h-18 rounded-2xl flex items-center justify-center mx-auto" style={{ width: '72px', height: '72px', background: 'rgba(255,20,147,0.08)', border: '1px solid rgba(255,20,147,0.2)' }}>
+                  <AlertCircle className="w-8 h-8" style={{ color: '#ff1493' }} />
                 </div>
                 <div className="space-y-1.5">
                   <h3 className="font-semibold text-foreground text-sm">Upload failed</h3>
@@ -474,8 +475,8 @@ export function PDFPanel({ className, onFileReady }: PDFPanelProps) {
               </>
             ) : (
               <>
-                <div className="w-18 h-18 bg-amber-500/10 rounded-2xl flex items-center justify-center mx-auto border border-amber-500/20" style={{ width: '72px', height: '72px' }}>
-                  <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
+                <div className="w-18 h-18 rounded-2xl flex items-center justify-center mx-auto" style={{ width: '72px', height: '72px', background: 'rgba(0,240,255,0.08)', border: '1px solid rgba(0,240,255,0.2)' }}>
+                  <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#00f0ff' }} />
                 </div>
                 <div className="space-y-1.5">
                   <h3 className="font-semibold text-foreground text-sm">Processing document</h3>

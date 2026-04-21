@@ -3,6 +3,7 @@ import { Header } from "./components/Header";
 import { ChatInterface } from "./components/ChatInterface";
 import { PDFPanel } from "./components/PDFPanel";
 import { Toaster } from "./components/ui/sonner";
+import { ParticleCanvas } from "./components/ParticleCanvas";
 
 export default function App() {
   const [chatKey, setChatKey] = useState(0);
@@ -22,6 +23,7 @@ export default function App() {
 
   return (
     <div className="dark min-h-screen bg-background text-foreground relative overflow-hidden">
+      <ParticleCanvas />
       <div className="background-system">
         <div className="floating-elements">
           <div className="floating-orb floating-orb-1"></div>

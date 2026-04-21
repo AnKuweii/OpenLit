@@ -233,15 +233,15 @@ export function ChatInterface({
 
   return (
     <div className="glass-panel-bright h-full flex flex-col max-h-full relative overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.03]">
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/30 via-transparent to-rose-500/20"></div>
+      <div className="absolute inset-0 opacity-[0.04]">
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-transparent to-fuchsia-500/15"></div>
       </div>
 
       <div className="relative px-5 py-4 border-b border-border/50 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25">
-              <Sparkles className="w-4 h-4 text-amber-400" />
+            <div className="p-2.5 rounded-xl border" style={{ background: 'rgba(0,240,255,0.08)', borderColor: 'rgba(0,240,255,0.25)' }}>
+              <Sparkles className="w-4 h-4" style={{ color: '#00f0ff' }} />
             </div>
             <div>
               <h2 className="elegant-title text-base">AI Assistant</h2>
@@ -256,7 +256,8 @@ export function ChatInterface({
             variant="outline"
             size="sm"
             onClick={clearChat}
-            className="text-muted-foreground hover:text-white hover:bg-destructive/80 hover:border-destructive/60 border border-border/50 transition-all duration-200 rounded-xl text-xs cursor-pointer"
+            className="text-muted-foreground hover:text-white hover:border-pink-500/60 border border-border/50 transition-all duration-200 rounded-xl text-xs cursor-pointer"
+            style={{ ['--hover-bg' as string]: 'rgba(255,20,147,0.3)' }}
           >
             Clear
           </Button>
@@ -270,9 +271,9 @@ export function ChatInterface({
               {messages.map((m) => (
                 <div key={m.id} className={`flex gap-3 ${m.type === "user" ? "justify-end" : "justify-start"}`}>
                   {m.type === "assistant" && (
-                    <Avatar className="w-8 h-8 border border-amber-500/25 flex-shrink-0">
-                      <AvatarFallback className="bg-gradient-to-br from-amber-500/10 to-rose-500/10">
-                        <Bot className="w-4 h-4 text-amber-400" />
+                    <Avatar className="w-8 h-8 flex-shrink-0" style={{ border: '1px solid rgba(0,240,255,0.3)' }}>
+                      <AvatarFallback style={{ background: 'linear-gradient(135deg, rgba(0,240,255,0.1), rgba(191,0,255,0.1))' }}>
+                        <Bot className="w-4 h-4" style={{ color: '#00f0ff' }} />
                       </AvatarFallback>
                     </Avatar>
                   )}
@@ -281,10 +282,12 @@ export function ChatInterface({
                     <div
                       className={`p-3.5 rounded-2xl ${
                         m.type === "user"
-                          ? "bg-gradient-to-br from-amber-500 to-amber-600 text-primary-foreground ml-auto border border-amber-500/40"
+                          ? "text-primary-foreground ml-auto"
                           : "bg-secondary/30 border border-border/30 backdrop-blur-sm"
                       }`}
-                      style={{ boxShadow: m.type === "user" ? '0 4px 16px rgba(245, 158, 11, 0.2)' : '0 2px 12px rgba(0,0,0,0.1)' }}
+                      style={m.type === "user" 
+                        ? { background: 'linear-gradient(135deg, #00f0ff, #0090cc)', border: '1px solid rgba(0,240,255,0.4)', boxShadow: '0 4px 20px rgba(0,240,255,0.25)', color: '#0a0618' }
+                        : { boxShadow: '0 2px 12px rgba(0,0,0,0.2)' }}
                     >
                       {m.type === "user" ? (
                         <p className="text-primary-foreground leading-relaxed text-sm whitespace-pre-wrap">{m.content}</p>
@@ -295,9 +298,9 @@ export function ChatInterface({
                   </div>
 
                   {m.type === "user" && (
-                    <Avatar className="w-8 h-8 border border-border/30 flex-shrink-0">
-                      <AvatarFallback className="bg-gradient-to-br from-stone-700/60 to-stone-800/60">
-                        <User className="w-4 h-4 text-stone-300" />
+                    <Avatar className="w-8 h-8 flex-shrink-0" style={{ border: '1px solid rgba(191,0,255,0.3)' }}>
+                      <AvatarFallback style={{ background: 'linear-gradient(135deg, rgba(191,0,255,0.15), rgba(74,25,44,0.3))' }}>
+                        <User className="w-4 h-4" style={{ color: '#bf00ff' }} />
                       </AvatarFallback>
                     </Avatar>
                   )}
@@ -306,20 +309,20 @@ export function ChatInterface({
 
               {isTyping && (
                 <div className="flex gap-3">
-                  <Avatar className="w-8 h-8 border border-amber-500/25 flex-shrink-0">
-                    <AvatarFallback className="bg-gradient-to-br from-amber-500/10 to-rose-500/10">
-                      <Bot className="w-4 h-4 text-amber-400" />
+                  <Avatar className="w-8 h-8 flex-shrink-0" style={{ border: '1px solid rgba(0,240,255,0.3)' }}>
+                    <AvatarFallback style={{ background: 'linear-gradient(135deg, rgba(0,240,255,0.1), rgba(191,0,255,0.1))' }}>
+                      <Bot className="w-4 h-4" style={{ color: '#00f0ff' }} />
                     </AvatarFallback>
                   </Avatar>
                   <div className="max-w-[80%]">
-                    <div className="bg-secondary/30 border border-border/30 backdrop-blur-sm rounded-2xl p-3.5" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}>
+                    <div className="bg-secondary/30 border border-border/30 backdrop-blur-sm rounded-2xl p-3.5" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.2)' }}>
                       {currentResponse ? (
                         <MarkdownRenderer content={currentResponse} references={currentReferences} />
                       ) : (
                         <div className="flex space-x-2 py-1">
-                          <div className="w-1.5 h-1.5 bg-amber-400/60 rounded-full animate-bounce"></div>
-                          <div className="w-1.5 h-1.5 bg-amber-400/60 rounded-full animate-bounce" style={{ animationDelay: "0.15s" }}></div>
-                          <div className="w-1.5 h-1.5 bg-amber-400/60 rounded-full animate-bounce" style={{ animationDelay: "0.3s" }}></div>
+                          <div className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: 'rgba(0,240,255,0.6)' }}></div>
+                          <div className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: 'rgba(0,240,255,0.6)', animationDelay: "0.15s" }}></div>
+                          <div className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: 'rgba(0,240,255,0.6)', animationDelay: "0.3s" }}></div>
                         </div>
                       )}
                     </div>
@@ -347,7 +350,8 @@ export function ChatInterface({
                 }
               }}
               placeholder={fileId ? "Ask a question about your document..." : "Ask anything… (upload a PDF to enable RAG)"}
-              className="flex-1 bg-input/50 border-border/30 focus:border-amber-500/40 glow-ring text-foreground placeholder:text-muted-foreground/60 rounded-xl px-4 py-3 backdrop-blur-sm resize-none min-h-[48px] max-h-[120px] text-sm leading-relaxed flex items-center"
+              className="flex-1 border-border/30 glow-ring text-foreground placeholder:text-muted-foreground/60 rounded-xl px-4 py-3 backdrop-blur-sm resize-none min-h-[48px] max-h-[120px] text-sm leading-relaxed flex items-center"
+              style={{ background: 'rgba(20,10,40,0.5)' }}
               disabled={isTyping}
               rows={1}
             />
@@ -355,8 +359,8 @@ export function ChatInterface({
           <Button
             onClick={handleSend}
             disabled={!canSend}
-            className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-primary-foreground h-[48px] w-[48px] p-0 rounded-xl transition-all duration-200 border border-amber-500/40 flex-shrink-0"
-            style={{ boxShadow: '0 4px 16px rgba(245, 158, 11, 0.2)' }}
+            className="h-[48px] w-[48px] p-0 rounded-xl transition-all duration-200 flex-shrink-0 cursor-pointer"
+            style={{ background: 'linear-gradient(135deg, #00f0ff, #0090cc)', border: '1px solid rgba(0,240,255,0.4)', boxShadow: '0 4px 20px rgba(0,240,255,0.25)', color: '#0a0618' }}
           >
             <Send className="w-4 h-4" />
           </Button>

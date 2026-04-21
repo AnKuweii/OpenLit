@@ -28,9 +28,9 @@ export function HealthCheck() {
       case 'checking':
         return <Loader2 className="w-3 h-3 animate-spin" />;
       case 'healthy':
-        return <CheckCircle2 className="w-3 h-3 text-emerald-400" />;
+        return <CheckCircle2 className="w-3 h-3" style={{ color: '#39ff14' }} />;
       case 'unhealthy':
-        return <AlertCircle className="w-3 h-3 text-rose-400" />;
+        return <AlertCircle className="w-3 h-3" style={{ color: '#ff1493' }} />;
     }
   };
 

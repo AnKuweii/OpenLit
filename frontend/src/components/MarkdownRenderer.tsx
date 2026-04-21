@@ -49,7 +49,7 @@ function Code(props: any) {
   const { inline, className, children } = props;
   const language = (className || "").replace("language-", "") || "code";
   if (inline) {
-    return <code className="bg-muted/40 px-1.5 py-0.5 rounded-md text-sm text-amber-300/90">{children}</code>;
+    return <code className="bg-muted/40 px-1.5 py-0.5 rounded-md text-sm" style={{ color: '#00f0ff' }}>{children}</code>;
   }
   return (
     <div className="my-3">
@@ -62,8 +62,8 @@ function Code(props: any) {
           Copy
         </button>
       </div>
-      <pre className="text-sm overflow-x-auto bg-stone-900/60 p-3 rounded-xl border border-stone-700/40">
-        <code className="text-stone-200">{children}</code>
+      <pre className="text-sm overflow-x-auto p-3 rounded-xl" style={{ background: 'rgba(10,5,20,0.6)', border: '1px solid rgba(0,240,255,0.15)' }}>
+        <code style={{ color: '#c0c0d0' }}>{children}</code>
       </pre>
     </div>
   );
@@ -117,7 +117,7 @@ function ReferenceCard({ citationId, index }: { citationId: string; index: numbe
   return (
     <div className="bg-muted/15 rounded-xl p-3 border border-border/20">
       <div className="flex items-start gap-2.5">
-        <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-amber-500/15 text-amber-400 rounded-full shrink-0 border border-amber-500/25">
+        <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full shrink-0" style={{ background: 'rgba(0,240,255,0.15)', color: '#00f0ff', border: '1px solid rgba(0,240,255,0.3)' }}>
           {index + 1}
         </span>
         <div className="flex-1 min-w-0">
@@ -180,7 +180,7 @@ export function MarkdownRenderer({
           h3: (p) => <h3 {...p} className="text-base font-semibold mt-3 mb-1.5" />,
           ul:  (p) => <ul {...p} className="list-disc pl-5 space-y-1" />,
           ol:  (p) => <ol {...p} className="list-decimal pl-5 space-y-1" />,
-          a:   (p) => <a {...p} className="text-amber-400 underline underline-offset-4 hover:text-amber-300 transition-colors" target="_blank" />,
+          a:   (p) => <a {...p} className="underline underline-offset-4 transition-colors" style={{ color: '#00f0ff' }} target="_blank" />,
         }}
       >
         {sanitizedContent}
@@ -189,7 +189,7 @@ export function MarkdownRenderer({
       {references?.length > 0 && (
         <div className="mt-4 pt-3 border-t border-border/20">
           <div className="flex items-center gap-2 mb-2">
-            <FileText className="w-3.5 h-3.5 text-amber-400" />
+            <FileText className="w-3.5 h-3.5" style={{ color: '#00f0ff' }} />
             <span className="text-xs font-semibold">相关文档片段</span>
             <span className="text-xs text-muted-foreground/60">({references.length})</span>
           </div>
