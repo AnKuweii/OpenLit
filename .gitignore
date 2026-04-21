@@ -3,7 +3,7 @@ backend/.env
 backend/data/
 
 # 前端
-frontend/
+node_modules/
 
 # Python 缓存
 backend/**/__pycache__/
