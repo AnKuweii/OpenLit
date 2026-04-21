@@ -57,8 +57,14 @@ GRADER_TEMPERATURE = 0
 # 嵌入模型
 EMBED_MODEL = "BAAI/bge-m3"
 
+# 重排序模型（本地 HuggingFaceCrossEncoder）
+RERANKER_MODEL = os.getenv("RERANKER_MODEL", "BAAI/bge-reranker-v2-m3")
+RERANKER_TOP_N = 3
+
 # ============================= 检索配置 =============================
-# 相似度检索数量
+# 初步召回数量（rerank 前），应大于最终需要的 K 以给重排序留出筛选空间
+RECALL_K = 10
+# 最终保留数量（rerank 后）
 K = 3
 # 相似度检索阈值 → FAISS L2：越小越相似；数值可以灵活调整（Top1 和 Mean3）
 SCORE_TAU_TOP1 = 0.30

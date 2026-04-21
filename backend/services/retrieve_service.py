@@ -1,4 +1,4 @@
-"""检索服务：BM25 + 向量语义混合检索。"""
+"""检索服务：BM25 + 向量语义混合检索 + BGE-reranker 重排序。"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -8,9 +8,10 @@ from langchain_classic.retrievers import EnsembleRetriever
 from langchain_community.retrievers import BM25Retriever
 from langchain_community.vectorstores import FAISS
 
-from config import K, GRADE_PROMPT, SCORE_TAU_MEAN3, SCORE_TAU_TOP1
+from config import K, RECALL_K, GRADE_PROMPT, SCORE_TAU_MEAN3, SCORE_TAU_TOP1
 from model import get_embeddings, get_grader
 from services.index_service import markdown_path, split_markdown
+from services.rerank_service import rerank
 
 
 def vector_store_dir(file_id: str) -> Path:
@@ -45,13 +46,13 @@ def score_ok(scores: list[float]) -> bool:
     return (top1 <= SCORE_TAU_TOP1) or (mean3 <= SCORE_TAU_MEAN3)
 
 
-def build_hybrid_retriever(file_id: str, vector_store: FAISS | None = None) -> EnsembleRetriever:
+def build_hybrid_retriever(file_id: str, vector_store: FAISS | None = None, recall_k: int = RECALL_K) -> EnsembleRetriever:
     vector_store = vector_store or load_vector_store(file_id)
-    vector_retriever = vector_store.as_retriever(search_kwargs={"k": K})
+    vector_retriever = vector_store.as_retriever(search_kwargs={"k": recall_k})
 
     bm25_documents = load_bm25_documents(file_id)
     bm25_retriever = BM25Retriever.from_documents(bm25_documents)
-    bm25_retriever.k = K
+    bm25_retriever.k = recall_k
 
     return EnsembleRetriever(
         retrievers=[vector_retriever, bm25_retriever],
@@ -111,12 +112,16 @@ async def retrieve(question: str, file_id: str) -> tuple[list[dict], str]:
     返回 (citations, context_text)
     citations: [{citation_id, fileId, rank, page, snippet, score, previewUrl}]
     context_text: 供 LLM 使用的拼接上下文
+
+    流程：混合检索(RECALL_K) → BGE-reranker 重排序 → 取 top-K → 评分/Grader 判定
     """
     vector_store = load_vector_store(file_id)
     hybrid_retriever = build_hybrid_retriever(file_id, vector_store=vector_store)
-    docs = hybrid_retriever.invoke(question)[:K]
+    docs = hybrid_retriever.invoke(question)[:RECALL_K]
 
-    vector_hits = vector_store.similarity_search_with_score(question, k=K)
+    docs = await rerank(question, docs, top_n=K)
+
+    vector_hits = vector_store.similarity_search_with_score(question, k=RECALL_K)
     score_map = build_vector_score_map(vector_hits)
     citations, context_text, scores = build_citations(file_id, docs, score_map)
 

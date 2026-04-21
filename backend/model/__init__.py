@@ -7,12 +7,14 @@ from config import (
     GRADER_TEMPERATURE,
     MODEL_NAME,
     MODEL_PROVIDER,
+    RERANKER_MODEL,
     TEMPERATURE,
 )
 
 import logging
 import torch.cuda as cuda
 from langchain.chat_models import init_chat_model
+from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 from langchain_huggingface import HuggingFaceEmbeddings
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,7 @@ class ModelFactory:
     """模型实例工厂：LLM / Embedding / 评分器 / 路由器。缓存实例，避免重复加载模型。"""
 
     _embeddings: HuggingFaceEmbeddings | None = None
+    _reranker: HuggingFaceCrossEncoder | None = None
     _llm = None
     _grader = None
     _router = None
@@ -36,6 +39,10 @@ class ModelFactory:
             encode_kwargs={"normalize_embeddings": True},
         )
         logger.info("[ModelFactory] embedding model ready.")
+
+        logger.info("[ModelFactory] loading reranker model %s on %s …", RERANKER_MODEL, device)
+        cls._reranker = HuggingFaceCrossEncoder(model_name=RERANKER_MODEL)
+        logger.info("[ModelFactory] reranker model ready.")
 
         logger.info("[ModelFactory] initializing LLM (%s / %s) …", MODEL_PROVIDER, MODEL_NAME)
         cls._llm = init_chat_model(
@@ -76,6 +83,12 @@ class ModelFactory:
         return cls._grader
 
     @classmethod
+    def reranker(cls) -> HuggingFaceCrossEncoder:
+        if cls._reranker is None:
+            raise RuntimeError("ModelFactory not initialized – call ModelFactory.init() first")
+        return cls._reranker
+
+    @classmethod
     def router(cls):
         if cls._router is None:
             raise RuntimeError("ModelFactory not initialized – call ModelFactory.init() first")
@@ -96,6 +109,11 @@ def get_llm():
 def get_grader():
     """获取评分器实例。"""
     return ModelFactory.grader()
+
+
+def get_reranker() -> HuggingFaceCrossEncoder:
+    """获取重排序 cross-encoder 实例。"""
+    return ModelFactory.reranker()
 
 
 def get_router():
