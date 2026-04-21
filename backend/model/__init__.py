@@ -18,11 +18,12 @@ logger = logging.getLogger(__name__)
 
 
 class ModelFactory:
-    """模型实例工厂：LLM / Embedding / 评分器。缓存实例，避免重复加载模型。"""
+    """模型实例工厂：LLM / Embedding / 评分器 / 路由器。缓存实例，避免重复加载模型。"""
 
     _embeddings: HuggingFaceEmbeddings | None = None
     _llm = None
     _grader = None
+    _router = None
 
     @classmethod
     def init(cls) -> None:
@@ -52,6 +53,10 @@ class ModelFactory:
         )
         logger.info("[ModelFactory] grader ready.")
 
+        logger.info("[ModelFactory] initializing router (reuses grader config) …")
+        cls._router = cls._grader
+        logger.info("[ModelFactory] router ready.")
+
     @classmethod
     def embeddings(cls) -> HuggingFaceEmbeddings:
         if cls._embeddings is None:
@@ -70,6 +75,12 @@ class ModelFactory:
             raise RuntimeError("ModelFactory not initialized – call ModelFactory.init() first")
         return cls._grader
 
+    @classmethod
+    def router(cls):
+        if cls._router is None:
+            raise RuntimeError("ModelFactory not initialized – call ModelFactory.init() first")
+        return cls._router
+
 
 # ModelFactory 是内部实现细节，业务层不需要知道"工厂"存在。
 def get_embeddings() -> HuggingFaceEmbeddings:
@@ -85,3 +96,8 @@ def get_llm():
 def get_grader():
     """获取评分器实例。"""
     return ModelFactory.grader()
+
+
+def get_router():
+    """获取路由器实例（轻量模型，用于查询意图分类）。"""
+    return ModelFactory.router()

@@ -120,14 +120,13 @@ async def retrieve(question: str, file_id: str) -> tuple[list[dict], str]:
     score_map = build_vector_score_map(vector_hits)
     citations, context_text, scores = build_citations(file_id, docs, score_map)
 
-    ok_by_score = score_ok(scores)
-    if not ok_by_score:
+    is_score_acceptable = score_ok(scores)
+    if not is_score_acceptable:
         grader = get_grader()
         grade_prompt = GRADE_PROMPT.format(context=context_text, question=question)
         decision = await grader.ainvoke([{"role": "user", "content": grade_prompt}])
-        ok_by_llm = "yes" in (decision.content or "").lower()
+        is_context_relevant = "yes" in (decision.content or "").lower()
     else:
-        ok_by_llm = True
+        is_context_relevant = True
 
-    branch = "with_context" if ok_by_llm else "no_context"
-    return citations, context_text if branch == "with_context" else ""
+    return citations, context_text if is_context_relevant else ""

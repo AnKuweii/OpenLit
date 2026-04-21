@@ -4,19 +4,24 @@ from __future__ import annotations
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
-from graph.nodes import generate_no_context, generate_with_context, retrieve_node
+from graph.nodes import (
+    generate_no_context,
+    generate_with_context,
+    retrieve_node,
+    router_node,
+)
 from graph.state import GraphState
 
 
 # ── routing functions 路由函数 ───────────────────────
 
-def should_retrieve(state: GraphState) -> str:
-    """入口路由：当没有file_id时跳过检索。"""
-    return "retrieve" if state.get("file_id") else "generate_no_context"
+def route_after_router(state: GraphState) -> str:
+    """Router 后路由：根据 needs_retrieve 决定走检索还是直接生成。"""
+    return "retrieve" if state.get("needs_retrieve") else "generate_no_context"
 
 
 def route_after_retrieve(state: GraphState) -> str:
-    """后检索路由：根据分支选择生成变体。"""
+    """后检索路由：根据 Grader 判定的上下文相关性选择生成变体。"""
     return (
         "generate_with_context"
         if state.get("branch") == "with_context"
@@ -30,13 +35,16 @@ def build_graph() -> StateGraph:
     """构造RAG状态图（尚未编译）。"""
     builder = StateGraph(GraphState)
 
+    builder.add_node("router", router_node)
     builder.add_node("retrieve", retrieve_node)
     builder.add_node("generate_with_context", generate_with_context)
     builder.add_node("generate_no_context", generate_no_context)
 
+    builder.add_edge("__start__", "router")
+
     builder.add_conditional_edges(
-        "__start__",
-        should_retrieve,
+        "router",
+        route_after_router,
         {"retrieve": "retrieve", "generate_no_context": "generate_no_context"},
     )
 

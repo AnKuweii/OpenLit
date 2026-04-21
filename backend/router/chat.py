@@ -11,6 +11,8 @@ from state import citations as citations_store
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
+_GENERATION_NODES = frozenset({"generate_with_context", "generate_no_context"})
+
 
 @router.post("")
 async def chat_stream(req: ChatRequest):
@@ -29,6 +31,7 @@ async def chat_stream(req: ChatRequest):
             input_state = {
                 "question": question,
                 "file_id": file_id,
+                "needs_retrieve": False,
                 "citations": [],
                 "context_text": "",
                 "branch": "",
@@ -45,8 +48,10 @@ async def chat_stream(req: ChatRequest):
                 # 节点完成事件
                 if stream_type == "updates":
                     if isinstance(chunk, dict) and "retrieve" in chunk:
-                        citations = chunk["retrieve"].get("citations", [])
-                        if citations:
+                        retrieve_update = chunk["retrieve"]
+                        branch_from_retrieve = retrieve_update.get("branch", "")
+                        citations = retrieve_update.get("citations", [])
+                        if citations and branch_from_retrieve == "with_context":
                             final_citations = citations
                             for c in citations:
                                 citations_store[c["citation_id"]] = c
@@ -71,26 +76,19 @@ async def chat_stream(req: ChatRequest):
                                     yield "event: token\n"
                                     yield f'data: {{"text":"{text}"}}\n\n'
 
-                # Token 级流式输出
+                # Token 级流式输出（只放行生成节点，过滤 router/grader 控制信号）
                 elif stream_type == "messages":
-                    msg_chunk, _metadata = chunk
-                    if isinstance(msg_chunk, AIMessageChunk) and msg_chunk.content:
+                    msg_chunk, metadata = chunk
+                    source_node = metadata.get("langgraph_node", "")
+                    if (
+                        isinstance(msg_chunk, AIMessageChunk)
+                        and msg_chunk.content
+                        and source_node in _GENERATION_NODES
+                    ):
                         tokens_streamed = True
                         text = _sse_escape(msg_chunk.content)
                         yield "event: token\n"
                         yield f'data: {{"text":"{text}"}}\n\n'
-
-            # 图像预览
-            if final_branch == "with_context" and final_citations:
-                imgs = []
-                for c in final_citations[:2]:
-                    url = c.get("previewUrl")
-                    if url:
-                        imgs.append(f"![参考页 {c.get('rank', '')}]({url})")
-                if imgs:
-                    tail = "\n\n---\n**相关页面预览**\n\n" + "\n\n".join(imgs)
-                    yield "event: token\n"
-                    yield f'data: {{"text":"{_sse_escape(tail)}"}}\n\n'
 
             used = "true" if final_branch == "with_context" else "false"
             yield "event: done\n"

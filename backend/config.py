@@ -95,3 +95,16 @@ ANSWER_NO_CONTEXT = (
     "当前未找到与学术文献直接相关的片段，将基于通识知识作答。\n"
     "问题：\n{question}"
 )
+
+# 路由器提示词配置
+ROUTER_PROMPT = (
+    "你是一个查询分类器，判断用户问题是否需要检索已上传的学术文献来回答。\n"
+    "只输出 RETRIEVE 或 NO_RETRIEVE，不要解释。\n\n"
+    "规则：\n"
+    "- 问题涉及文档内容、论文方法、实验结果、作者观点 → RETRIEVE\n"
+    "- 包含指示代词（这篇、该文、文中、论文中）→ RETRIEVE\n"
+    "- 通识知识（解释概念、定义术语）→ NO_RETRIEVE\n"
+    "- 闲聊寒暄（你好、谢谢、天气）→ NO_RETRIEVE\n"
+    "- 问AI自身（你是谁、你能做什么）→ NO_RETRIEVE\n\n"
+    "问题：{query}"
+)
