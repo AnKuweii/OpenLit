@@ -7,6 +7,8 @@ from langgraph.graph import END, StateGraph
 from graph.nodes import (
     generate_no_context,
     generate_with_context,
+    grade_node,
+    rerank_node,
     retrieve_node,
     router_node,
 )
@@ -21,7 +23,12 @@ def route_after_router(state: GraphState) -> str:
 
 
 def route_after_retrieve(state: GraphState) -> str:
-    """后检索路由：根据 Grader 判定的上下文相关性选择生成变体。"""
+    """检索后路由：有文档则继续重排序，否则跳过直接生成。"""
+    return "rerank" if state.get("raw_docs") else "generate_no_context"
+
+
+def route_after_grade(state: GraphState) -> str:
+    """评分后路由：根据上下文相关性选择生成变体。"""
     return (
         "generate_with_context"
         if state.get("branch") == "with_context"
@@ -32,11 +39,13 @@ def route_after_retrieve(state: GraphState) -> str:
 # ── graph construction 图构造 ──────────────────────────────────────────────
 
 def build_graph() -> StateGraph:
-    """构造RAG状态图（尚未编译）。"""
+    """构造 RAG 状态图（尚未编译）。"""
     builder = StateGraph(GraphState)
 
     builder.add_node("router", router_node)
     builder.add_node("retrieve", retrieve_node)
+    builder.add_node("rerank", rerank_node)
+    builder.add_node("grade", grade_node)
     builder.add_node("generate_with_context", generate_with_context)
     builder.add_node("generate_no_context", generate_no_context)
 
@@ -51,6 +60,14 @@ def build_graph() -> StateGraph:
     builder.add_conditional_edges(
         "retrieve",
         route_after_retrieve,
+        {"rerank": "rerank", "generate_no_context": "generate_no_context"},
+    )
+
+    builder.add_edge("rerank", "grade")
+
+    builder.add_conditional_edges(
+        "grade",
+        route_after_grade,
         {
             "generate_with_context": "generate_with_context",
             "generate_no_context": "generate_no_context",

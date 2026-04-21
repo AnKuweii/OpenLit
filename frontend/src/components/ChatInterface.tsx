@@ -269,7 +269,7 @@ export function ChatInterface({
           <div className="p-5">
             <div className="space-y-3">
               {messages.map((m) => (
-                <div key={m.id} className={`flex gap-3 ${m.type === "user" ? "justify-end" : "justify-start"}`}>
+                <div key={m.id} className={`flex gap-3 items-center ${m.type === "user" ? "justify-end" : "justify-start"}`}>
                   {m.type === "assistant" && (
                     <Avatar className="w-8 h-8 flex-shrink-0" style={{ border: '1px solid rgba(0,240,255,0.3)' }}>
                       <AvatarFallback style={{ background: 'linear-gradient(135deg, rgba(0,240,255,0.1), rgba(191,0,255,0.1))' }}>
@@ -280,17 +280,17 @@ export function ChatInterface({
 
                   <div className={`max-w-[80%] ${m.type === "user" ? "order-first" : ""}`}>
                     <div
-                      className={`p-3.5 rounded-2xl ${
+                      className={`px-4 py-3 rounded-2xl ${
                         m.type === "user"
-                          ? "text-primary-foreground ml-auto"
+                          ? "ml-auto"
                           : "bg-secondary/30 border border-border/30 backdrop-blur-sm"
                       }`}
                       style={m.type === "user" 
-                        ? { background: 'linear-gradient(135deg, #00f0ff, #0090cc)', border: '1px solid rgba(0,240,255,0.4)', boxShadow: '0 4px 20px rgba(0,240,255,0.25)', color: '#0a0618' }
+                        ? { background: 'rgba(12, 6, 24, 0.75)', border: '1px solid rgba(80, 50, 120, 0.35)', boxShadow: '0 2px 12px rgba(0,0,0,0.3)' }
                         : { boxShadow: '0 2px 12px rgba(0,0,0,0.2)' }}
                     >
                       {m.type === "user" ? (
-                        <p className="text-primary-foreground leading-relaxed text-sm whitespace-pre-wrap">{m.content}</p>
+                        <p className="leading-relaxed text-sm whitespace-pre-wrap" style={{ color: '#c0c0d0' }}>{m.content}</p>
                       ) : (
                         <MarkdownRenderer content={m.content} references={m.references} />
                       )}
@@ -308,7 +308,7 @@ export function ChatInterface({
               ))}
 
               {isTyping && (
-                <div className="flex gap-3">
+                <div className="flex gap-3 items-center">
                   <Avatar className="w-8 h-8 flex-shrink-0" style={{ border: '1px solid rgba(0,240,255,0.3)' }}>
                     <AvatarFallback style={{ background: 'linear-gradient(135deg, rgba(0,240,255,0.1), rgba(191,0,255,0.1))' }}>
                       <Bot className="w-4 h-4" style={{ color: '#00f0ff' }} />

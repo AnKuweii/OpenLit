@@ -47,11 +47,11 @@ async def chat_stream(req: ChatRequest):
             ):
                 # 节点完成事件
                 if stream_type == "updates":
-                    if isinstance(chunk, dict) and "retrieve" in chunk:
-                        retrieve_update = chunk["retrieve"]
-                        branch_from_retrieve = retrieve_update.get("branch", "")
-                        citations = retrieve_update.get("citations", [])
-                        if citations and branch_from_retrieve == "with_context":
+                    if isinstance(chunk, dict) and "grade" in chunk:
+                        grade_update = chunk["grade"]
+                        branch_from_grade = grade_update.get("branch", "")
+                        citations = grade_update.get("citations", [])
+                        if citations and branch_from_grade == "with_context":
                             final_citations = citations
                             for c in citations:
                                 citations_store[c["citation_id"]] = c

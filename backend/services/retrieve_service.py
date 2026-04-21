@@ -1,4 +1,4 @@
-"""检索服务：BM25 + 向量语义混合检索 + BGE-reranker 重排序。"""
+"""检索服务：纯能力层，提供混合检索、评分、引用构建等原子操作。"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -8,10 +8,9 @@ from langchain_classic.retrievers import EnsembleRetriever
 from langchain_community.retrievers import BM25Retriever
 from langchain_community.vectorstores import FAISS
 
-from config import K, RECALL_K, GRADE_PROMPT, SCORE_TAU_MEAN3, SCORE_TAU_TOP1
-from model import get_embeddings, get_grader
+from config import RECALL_K, SCORE_TAU_MEAN3, SCORE_TAU_TOP1
+from model import get_embeddings
 from services.index_service import markdown_path, split_markdown
-from services.rerank_service import rerank
 
 
 def vector_store_dir(file_id: str) -> Path:
@@ -105,33 +104,3 @@ def build_citations(file_id: str, docs: list[Any], score_map: dict[tuple[str, tu
 
     context_text = "\n\n".join(ctx_snippets) if ctx_snippets else "(no hits)"
     return citations, context_text, scores
-
-
-async def retrieve(question: str, file_id: str) -> tuple[list[dict], str]:
-    """
-    返回 (citations, context_text)
-    citations: [{citation_id, fileId, rank, page, snippet, score, previewUrl}]
-    context_text: 供 LLM 使用的拼接上下文
-
-    流程：混合检索(RECALL_K) → BGE-reranker 重排序 → 取 top-K → 评分/Grader 判定
-    """
-    vector_store = load_vector_store(file_id)
-    hybrid_retriever = build_hybrid_retriever(file_id, vector_store=vector_store)
-    docs = hybrid_retriever.invoke(question)[:RECALL_K]
-
-    docs = await rerank(question, docs, top_n=K)
-
-    vector_hits = vector_store.similarity_search_with_score(question, k=RECALL_K)
-    score_map = build_vector_score_map(vector_hits)
-    citations, context_text, scores = build_citations(file_id, docs, score_map)
-
-    is_score_acceptable = score_ok(scores)
-    if not is_score_acceptable:
-        grader = get_grader()
-        grade_prompt = GRADE_PROMPT.format(context=context_text, question=question)
-        decision = await grader.ainvoke([{"role": "user", "content": grade_prompt}])
-        is_context_relevant = "yes" in (decision.content or "").lower()
-    else:
-        is_context_relevant = True
-
-    return citations, context_text if is_context_relevant else ""

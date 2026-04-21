@@ -57,7 +57,11 @@ export function HealthCheck() {
   };
 
   return (
-    <Badge variant={getStatusVariant()} className="flex items-center gap-1.5 px-2.5 py-1 text-xs">
+    <Badge
+      variant={getStatusVariant()}
+      className="flex items-center gap-1.5 px-2.5 py-1 text-xs"
+      style={status === 'healthy' ? { background: '#38b2ac', color: '#0a0618' } : undefined}
+    >
       {getStatusIcon()}
       <span>{getStatusText()}</span>
     </Badge>

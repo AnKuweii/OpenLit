@@ -13,6 +13,7 @@ class GraphState(TypedDict):
     question: str # 用户问题
     file_id: str # 文件ID
     needs_retrieve: bool # 路由器判定是否需要检索
+    raw_docs: list # 混合检索原始文档（retrieve → rerank 中间态）
     citations: list[dict] # 引用列表
     context_text: str # 上下文文本
     branch: str  # "with_context" | "no_context"
