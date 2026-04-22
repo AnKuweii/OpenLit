@@ -15,8 +15,22 @@ frontend/package-lock.json linguist-generated
 frontend/yarn.lock linguist-generated
 frontend/pnpm-lock.yaml linguist-generated
 
+# Tailwind 全局样式
+frontend/src/styles/globals.css linguist-generated
+frontend/src/index.css linguist-generated
+
 # TypeScript 声明文件
 **/*.d.ts linguist-generated
+
+# API Endpoints
+frontend/src/services/** linguist-generated
+
+# 入口文件
+frontend/src/main.tsx linguist-generated
+
+# 配置文件
+frontend/vite.config.ts linguist-generated
+frontend/index.html linguist-generated
 
 # 2. 标记 vendored 
 frontend/src/assets/** linguist-vendored
