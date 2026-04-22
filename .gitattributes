@@ -1,0 +1,25 @@
+# 1. 标记 generated
+
+# shadcn/ui 组件库
+frontend/src/components/ui/** linguist-generated
+
+# shadcn 的工具文件
+frontend/src/components/ui/use-mobile.ts linguist-generated
+frontend/src/components/ui/utils.ts linguist-generated
+
+# Figma 自动导出的组件
+frontend/src/components/figma/** linguist-generated
+
+# 锁文件
+frontend/package-lock.json linguist-generated
+frontend/yarn.lock linguist-generated
+frontend/pnpm-lock.yaml linguist-generated
+
+# TypeScript 声明文件
+**/*.d.ts linguist-generated
+
+# 2. 标记 vendored 
+frontend/src/assets/** linguist-vendored
+
+# 3. 标记 detectable
+backend/**/*.py linguist-detectable
