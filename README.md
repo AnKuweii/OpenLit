@@ -14,8 +14,8 @@
 
 <br/>
 
-[![GitHub stars](https://img.shields.io/github/stars/AnKuweii/OpenLit?style=flat-square&logo=github&label=Stars)](https://github.com/AnKuweii/OpenLit/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/AnKuweii/OpenLit?style=flat-square&logo=github&label=Forks)](https://github.com/AnKuweii/OpenLit/network)
+[![GitHub stars](https://img.shields.io/github/stars/AnKuweii/OpenLit?style=flat-square&logo=github&label=Stars&v=2)](https://github.com/AnKuweii/OpenLit/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/AnKuweii/OpenLit?style=flat-square&logo=github&label=Forks&v=2)](https://github.com/AnKuweii/OpenLit/network)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 </div>
